@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Koperasi Simpan Pinjam Design System - Professional Financial Theme */
+
+@layer base {
+  :root {
+    /* Background & Surface */
+    --background: 210 20% 98%;
+    --foreground: 224 71.4% 4.1%;
+    
+    /* Cards & Surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 224 71.4% 4.1%;
+    
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
+    
+    /* Primary - Navy Blue for Trust & Authority */
+    --primary: 221 83% 18%;
+    --primary-foreground: 210 40% 98%;
+    --primary-muted: 221 83% 25%;
+    
+    /* Secondary - Light Blue */
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 221 83% 18%;
+    
+    /* Success - Green for Growth */
+    --success: 142 76% 36%;
+    --success-foreground: 355 100% 97%;
+    --success-muted: 142 76% 45%;
+    
+    /* Muted */
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    
+    /* Accent - Gold for Premium */
+    --accent: 35 91% 65%;
+    --accent-foreground: 26 83% 14%;
+    
+    /* Destructive - Red for Warnings */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    
+    /* Borders & Inputs */
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221 83% 18%;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-muted)));
+    --gradient-success: linear-gradient(135deg, hsl(var(--success)), hsl(var(--success-muted)));
+    --gradient-bg: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted)));
+    
+    /* Shadows */
+    --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.1);
+    --shadow-card: 0 4px 12px -4px hsl(var(--primary) / 0.1);
+    
+    /* Radius */
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* Background & Surface */
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    
+    /* Cards & Surfaces */
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+    
+    /* Popover */
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
+    
+    /* Primary - Lighter Navy for Dark Mode */
+    --primary: 221 83% 53%;
+    --primary-foreground: 210 40% 98%;
+    --primary-muted: 221 83% 45%;
+    
+    /* Secondary */
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    
+    /* Success - Brighter Green for Dark Mode */
+    --success: 142 76% 48%;
+    --success-foreground: 355 100% 97%;
+    --success-muted: 142 76% 55%;
+    
+    /* Muted */
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    
+    /* Accent - Brighter Gold for Dark Mode */
+    --accent: 35 91% 75%;
+    --accent-foreground: 26 83% 14%;
+    
+    /* Destructive */
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    
+    /* Borders & Inputs */
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 221 83% 53%;
+    
+    /* Sidebar */
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
