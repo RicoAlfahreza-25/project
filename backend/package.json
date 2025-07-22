@@ -9,6 +9,8 @@
     "dev": "nodemon server.js",
     "setup": "node setup.js",
     "migrate": "node scripts/migrate.js",
+    "update-members": "node scripts/update-members-table.js",
+    "check-members": "node scripts/check-members-table.js",
     "seed": "node scripts/seed.js"
   },
   "dependencies": {
@@ -21,6 +23,7 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
+    "multer": "^2.0.2",
     "mysql2": "^3.6.5"
   },
   "devDependencies": {

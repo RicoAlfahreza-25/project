@@ -47,17 +47,71 @@ const createTables = async () => {
     await executeQuery(`
       CREATE TABLE IF NOT EXISTS members (
         id INT PRIMARY KEY AUTO_INCREMENT,
-        member_number VARCHAR(20) UNIQUE NOT NULL,
+        member_number VARCHAR(50) UNIQUE NOT NULL,
         name VARCHAR(255) NOT NULL,
-        email VARCHAR(255),
-        phone VARCHAR(20),
-        address TEXT,
-        id_number VARCHAR(20),
+        mother_name VARCHAR(255),
+        id_number VARCHAR(20) NOT NULL,
+        npwp VARCHAR(50),
+        birth_place VARCHAR(100),
+        birth_date DATE,
+        gender ENUM('LAKI LAKI', 'PEREMPUAN'),
+        phone VARCHAR(20) NOT NULL,
+        emergency_phone VARCHAR(20),
+        emergency_relation VARCHAR(50),
+        emergency_name VARCHAR(255),
+        marital_status VARCHAR(50),
+        religion VARCHAR(50),
+        occupation VARCHAR(100),
+        house_ownership VARCHAR(50),
+        
+        -- Kategori Pensiunan
+        pensioner_category VARCHAR(50),
+        pension_type VARCHAR(100),
+        nopen VARCHAR(50),
+        book_number VARCHAR(50),
+        skep_number VARCHAR(50),
+        skep_date DATE,
+        skep_name VARCHAR(255),
+        skep_status VARCHAR(50),
+        payment_bank VARCHAR(100),
+        pension_account VARCHAR(50),
+        pension_salary DECIMAL(15,2),
+        
+        -- Alamat KTP
+        ktp_address TEXT,
+        ktp_province VARCHAR(100),
+        ktp_city VARCHAR(100),
+        ktp_district VARCHAR(100),
+        ktp_subdistrict VARCHAR(100),
+        ktp_postal_code VARCHAR(10),
+        
+        -- Alamat Domisili
+        same_as_ktp BOOLEAN DEFAULT FALSE,
+        domicile_address TEXT,
+        domicile_province VARCHAR(100),
+        domicile_city VARCHAR(100),
+        domicile_district VARCHAR(100),
+        domicile_subdistrict VARCHAR(100),
+        domicile_postal_code VARCHAR(10),
+        rt_number VARCHAR(10),
+        rt_name VARCHAR(255),
+        phone1 VARCHAR(20),
+        phone2 VARCHAR(20),
+        
+        -- Marketing & Cabang
+        marketing_id INT,
         branch_id INT NOT NULL,
-        join_date DATE NOT NULL,
+        
+        -- File uploads
+        ktp_file VARCHAR(255),
+        member_form VARCHAR(255),
+        
+        -- Status
         status ENUM('active', 'inactive', 'suspended') DEFAULT 'active',
+        
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        
         FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE
       )
     `);
@@ -160,6 +214,45 @@ const createTables = async () => {
         last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE,
         UNIQUE KEY unique_branch_stats (branch_id)
+      )
+    `);
+
+    // Create products table
+    await executeQuery(`
+      CREATE TABLE IF NOT EXISTS products (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        code VARCHAR(20) UNIQUE NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        category ENUM('pinjaman', 'simpanan', 'investasi') NOT NULL,
+        description TEXT,
+        status ENUM('active', 'inactive') DEFAULT 'active',
+        created_by INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+      )
+    `);
+
+    // Create product_settings table
+    await executeQuery(`
+      CREATE TABLE IF NOT EXISTS product_settings (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        product_id INT NOT NULL,
+        max_age INT,
+        max_limit DECIMAL(15,2),
+        max_term_months INT,
+        interest_rate DECIMAL(5,2),
+        mandatory_saving DECIMAL(15,2),
+        principal_saving_percentage DECIMAL(5,2),
+        admin_office_percentage DECIMAL(5,2),
+        admin_center_percentage DECIMAL(5,2),
+        marketing_fee_percentage DECIMAL(5,2),
+        crk_insurance JSON,
+        flagging_fees JSON,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_product_settings (product_id)
       )
     `);
 

@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Import database
 import { testConnection } from './config/database.js';
@@ -11,15 +13,29 @@ import { testConnection } from './config/database.js';
 // Import routes
 import authRoutes from './routes/auth.js';
 import branchRoutes from './routes/branches.js';
+import productRoutes from './routes/products.js';
 
 // Load environment variables
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      "frame-ancestors": ["'self'", "http://localhost:8080", "http://localhost:5173"],
+      "frame-src": ["'self'", "http://localhost:8080", "http://localhost:5173"],
+      "object-src": ["'self'", "http://localhost:8080", "http://localhost:5173"],
+      "default-src": ["'self'", "http://localhost:8080", "http://localhost:5173"]
+    }
+  }
+}));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -52,6 +68,9 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('combined'));
 }
 
+// Serve static files from uploads folder
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
@@ -65,6 +84,7 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/branches', branchRoutes);
+app.use('/api/products', productRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

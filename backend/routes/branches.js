@@ -4,10 +4,15 @@ import {
   getAllBranches, 
   createBranch, 
   updateBranch, 
-  refreshBranchStats 
+  refreshBranchStats,
+  getBranchMembers,
+  createBranchMember,
+  updateBranchMember,
+  deleteBranchMember
 } from '../controllers/branchController.js';
 import { authenticateToken, requireAdmin, checkBranchAccess } from '../middleware/auth.js';
 import { validateBranch } from '../middleware/validation.js';
+import { uploadMemberFiles } from '../middleware/upload.js';
 
 const router = express.Router();
 
@@ -21,5 +26,14 @@ router.post('/stats/refresh/:branchId?', authenticateToken, refreshBranchStats);
 router.get('/', authenticateToken, requireAdmin, getAllBranches);
 router.post('/', authenticateToken, requireAdmin, validateBranch, createBranch);
 router.put('/:id', authenticateToken, requireAdmin, updateBranch);
+
+// Branch members routes (branch users can access their own branch)
+router.get('/:branchId/members', authenticateToken, getBranchMembers);
+router.post('/:branchId/members', (req, res, next) => {
+  console.log('DEBUG: POST /:branchId/members route hit', req.params.branchId);
+  next();
+}, authenticateToken, uploadMemberFiles, createBranchMember);
+router.put('/:branchId/members/:memberId', authenticateToken, uploadMemberFiles, updateBranchMember);
+router.delete('/:branchId/members/:memberId', authenticateToken, deleteBranchMember);
 
 export default router;

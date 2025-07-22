@@ -351,3 +351,262 @@ export const refreshBranchStats = async (req, res) => {
     });
   }
 };
+
+// Get branch members
+export const getBranchMembers = async (req, res) => {
+  try {
+    const branchId = req.params.branchId;
+
+    // Verify user has access to this branch
+    if (req.user.role === 'branch' && req.user.branch_id !== parseInt(branchId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied to this branch'
+      });
+    }
+
+    const members = await executeQuery(
+      'SELECT * FROM members WHERE branch_id = ? ORDER BY created_at DESC',
+      [branchId]
+    );
+
+    res.json({
+      success: true,
+      data: members
+    });
+
+  } catch (error) {
+    console.error('Get branch members error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Create branch member
+export const createBranchMember = async (req, res) => {
+  try {
+    const branchId = req.params.branchId;
+    const {
+      name, mother_name, id_number, npwp, birth_place, birth_date, gender,
+      phone, emergency_phone, emergency_relation, emergency_name, marital_status, religion,
+      occupation, house_ownership, pensioner_category, pension_type, nopen, book_number,
+      skep_number, skep_date, skep_name, skep_status, payment_bank, pension_account,
+      pension_salary, ktp_address, ktp_province, ktp_city, ktp_district, ktp_subdistrict,
+      ktp_postal_code, same_as_ktp, domicile_address, domicile_province, domicile_city,
+      domicile_district, domicile_subdistrict, domicile_postal_code, rt_number, rt_name,
+      phone1, phone2, marketing_id, status
+    } = req.body;
+
+    // Handle file uploads
+    const ktp_file = req.files?.ktp_file?.[0]?.filename || null;
+    const member_form = req.files?.member_form?.[0]?.filename || null;
+
+    // Verify user has access to this branch
+    if (req.user.role === 'branch' && req.user.branch_id !== parseInt(branchId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied to this branch'
+      });
+    }
+
+    // Check if ID number already exists
+    const existingMember = await executeQuery(
+      'SELECT id FROM members WHERE id_number = ?',
+      [id_number]
+    );
+
+    if (existingMember.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID number already exists'
+      });
+    }
+
+    // Generate member number automatically
+    const memberCount = await executeQuery(
+      'SELECT COUNT(*) as count FROM members WHERE branch_id = ?',
+      [branchId]
+    );
+    const branch = await executeQuery(
+      'SELECT code FROM branches WHERE id = ?',
+      [branchId]
+    );
+    const memberNumber = `${branch[0].code}${String(memberCount[0].count + 1).padStart(4, '0')}`;
+
+    // PATCH: Set status default "pengajuan" jika user branch
+    const statusToInsert = req.user.role === 'branch' ? 'pengajuan' : (status || 'active');
+
+    // Insert member sesuai struktur tabel (tanpa id, created_at, updated_at)
+    const result = await executeQuery(
+      `INSERT INTO members (
+        member_number, name, phone, id_number, branch_id, status,
+        pensioner_category, pension_type, nopen, book_number, skep_number, skep_date, skep_name, skep_status, payment_bank, pension_account, pension_salary, mother_name, npwp, birth_place, birth_date, gender, emergency_phone, emergency_relation, emergency_name, marital_status, religion, occupation, house_ownership, ktp_address, ktp_province, ktp_city, ktp_district, ktp_subdistrict, ktp_postal_code, same_as_ktp, domicile_address, domicile_province, domicile_city, domicile_district, domicile_subdistrict, domicile_postal_code, rt_number, rt_name, phone1, phone2, marketing_id, ktp_file, member_form
+      ) VALUES (
+        ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+      )`,
+      [
+        memberNumber, name, phone, id_number, branchId, statusToInsert,
+        pensioner_category, pension_type, nopen, book_number, skep_number, skep_date, skep_name, skep_status, payment_bank, pension_account, pension_salary, mother_name, npwp, birth_place, birth_date, gender, emergency_phone, emergency_relation, emergency_name, marital_status, religion, occupation, house_ownership, ktp_address, ktp_province, ktp_city, ktp_district, ktp_subdistrict, ktp_postal_code, same_as_ktp, domicile_address, domicile_province, domicile_city, domicile_district, domicile_subdistrict, domicile_postal_code, rt_number, rt_name, phone1, phone2, marketing_id, ktp_file, member_form
+      ]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Member created successfully',
+      data: {
+        id: result.insertId,
+        member_number: memberNumber,
+        name,
+        status: status || 'pending'
+      }
+    });
+
+  } catch (error) {
+    console.error('Create branch member error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Update branch member
+export const updateBranchMember = async (req, res) => {
+  try {
+    const branchId = req.params.branchId;
+    const memberId = req.params.memberId;
+    const {
+      name, mother_name, id_number, npwp, birth_place, birth_date, gender,
+      phone, emergency_phone, emergency_relation, emergency_name, marital_status, religion,
+      occupation, house_ownership, pensioner_category, pension_type, nopen, book_number,
+      skep_number, skep_date, skep_name, skep_status, payment_bank, pension_account,
+      pension_salary, ktp_address, ktp_province, ktp_city, ktp_district, ktp_subdistrict,
+      ktp_postal_code, same_as_ktp, domicile_address, domicile_province, domicile_city,
+      domicile_district, domicile_subdistrict, domicile_postal_code, rt_number, rt_name,
+      phone1, phone2, marketing_id, status
+    } = req.body;
+
+    // Handle file uploads
+    const ktp_file = req.files?.ktp_file?.[0]?.filename || null;
+    const member_form = req.files?.member_form?.[0]?.filename || null;
+
+    // Verify user has access to this branch
+    if (req.user.role === 'branch' && req.user.branch_id !== parseInt(branchId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied to this branch'
+      });
+    }
+
+    // Check if member exists and belongs to this branch
+    const existingMember = await executeQuery(
+      'SELECT id FROM members WHERE id = ? AND branch_id = ?',
+      [memberId, branchId]
+    );
+
+    if (existingMember.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Member not found'
+      });
+    }
+
+    // Check if ID number already exists (excluding current member)
+    if (id_number) {
+      const duplicateMember = await executeQuery(
+        'SELECT id FROM members WHERE id_number = ? AND id != ?',
+        [id_number, memberId]
+      );
+
+      if (duplicateMember.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'ID number already exists'
+        });
+      }
+    }
+
+    // Update member
+    await executeQuery(
+      `UPDATE members 
+       SET name = ?, mother_name = ?, id_number = ?, npwp = ?, birth_place = ?, birth_date = ?, gender = ?,
+           phone = ?, emergency_phone = ?, emergency_relation = ?, emergency_name = ?, marital_status = ?, religion = ?,
+           occupation = ?, house_ownership = ?, pensioner_category = ?, pension_type = ?, nopen = ?, book_number = ?,
+           skep_number = ?, skep_date = ?, skep_name = ?, skep_status = ?, payment_bank = ?, pension_account = ?,
+           pension_salary = ?, ktp_address = ?, ktp_province = ?, ktp_city = ?, ktp_district = ?, ktp_subdistrict = ?,
+           ktp_postal_code = ?, same_as_ktp = ?, domicile_address = ?, domicile_province = ?, domicile_city = ?,
+           domicile_district = ?, domicile_subdistrict = ?, domicile_postal_code = ?, rt_number = ?, rt_name = ?,
+           phone1 = ?, phone2 = ?, marketing_id = ?, status = ?, ktp_file = ?, member_form = ?, updated_at = CURRENT_TIMESTAMP 
+       WHERE id = ? AND branch_id = ?`,
+      [
+        name, mother_name, id_number, npwp, birth_place, birth_date, gender,
+        phone, emergency_phone, emergency_relation, emergency_name, marital_status, religion,
+        occupation, house_ownership, pensioner_category, pension_type, nopen, book_number,
+        skep_number, skep_date, skep_name, skep_status, payment_bank, pension_account,
+        pension_salary, ktp_address, ktp_province, ktp_city, ktp_district, ktp_subdistrict,
+        ktp_postal_code, same_as_ktp, domicile_address, domicile_province, domicile_city,
+        domicile_district, domicile_subdistrict, domicile_postal_code, rt_number, rt_name,
+        phone1, phone2, marketing_id, status, ktp_file, member_form, memberId, branchId
+      ]
+    );
+
+    res.json({
+      success: true,
+      message: 'Member updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Update branch member error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Delete branch member
+export const deleteBranchMember = async (req, res) => {
+  try {
+    const branchId = req.params.branchId;
+    const memberId = req.params.memberId;
+
+    // Verify user has access to this branch
+    if (req.user.role === 'branch' && req.user.branch_id !== parseInt(branchId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied to this branch'
+      });
+    }
+
+    // Check if member exists and belongs to this branch
+    const existingMember = await executeQuery(
+      'SELECT id FROM members WHERE id = ? AND branch_id = ?',
+      [memberId, branchId]
+    );
+
+    if (existingMember.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Member not found'
+      });
+    }
+
+    // Delete member
+    await executeQuery('DELETE FROM members WHERE id = ? AND branch_id = ?', [memberId, branchId]);
+
+    res.json({
+      success: true,
+      message: 'Member deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Delete branch member error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
