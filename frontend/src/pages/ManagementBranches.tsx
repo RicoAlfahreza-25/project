@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Building2, Plus, Edit, Trash2, MapPin, Phone, User } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const branches = [
   {
@@ -44,6 +45,7 @@ const branches = [
 ];
 
 export function ManagementBranches() {
+  const { requireAuth, loading: authLoading, user } = useAuth();
   const [branchData, setBranchData] = useState(branches);
   const [editingBranch, setEditingBranch] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -57,6 +59,12 @@ export function ManagementBranches() {
     manager: '',
     status: 'active'
   });
+
+  useEffect(() => {
+    if (!authLoading) {
+      requireAuth('admin');
+    }
+  }, [authLoading, requireAuth, user]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

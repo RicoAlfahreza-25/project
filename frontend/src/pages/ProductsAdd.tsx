@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,8 +8,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Save } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export function ProductsAdd() {
+  const { requireAuth, loading: authLoading, user } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -19,19 +21,53 @@ export function ProductsAdd() {
   });
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!authLoading) {
+      requireAuth('admin');
+    }
+  }, [authLoading, requireAuth, user]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Produk Berhasil Ditambahkan",
-      description: `Produk ${formData.name} telah berhasil ditambahkan ke sistem`,
-    });
-    setFormData({
-      name: '',
-      description: '',
-      category: '',
-      code: '',
-      status: 'active'
-    });
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authData') ? JSON.parse(localStorage.getItem('authData')!).token : ''}`
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Produk Berhasil Ditambahkan",
+          description: `Produk ${formData.name} telah berhasil ditambahkan ke sistem`,
+        });
+        setFormData({
+          name: '',
+          description: '',
+          category: '',
+          code: '',
+          status: 'active'
+        });
+      } else {
+        toast({
+          title: "Gagal Menambahkan Produk",
+          description: data.message || "Terjadi kesalahan saat menambahkan produk",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Terjadi kesalahan saat menghubungi server",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleChange = (field: string, value: string) => {

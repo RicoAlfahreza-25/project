@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -51,6 +53,14 @@ const recentActivity = [
 ];
 
 export function Dashboard() {
+  const { requireAuth, loading: authLoading, user } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading) {
+      requireAuth('admin');
+    }
+  }, [authLoading, requireAuth, user]);
+
   return (
     <DashboardLayout>
       <div className="space-y-6 animate-fade-in">

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,9 +8,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Settings, Save, Plus, Trash2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export function ProductsSettings() {
+  const { requireAuth, loading: authLoading, user } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading) {
+      requireAuth('admin');
+    }
+  }, [authLoading, requireAuth, user]);
+
   const [selectedProduct, setSelectedProduct] = useState('');
+  const [products, setProducts] = useState([]);
   const [settings, setSettings] = useState({
     maxAge: '',
     maxLimit: '',
@@ -36,11 +46,125 @@ export function ProductsSettings() {
 
   const { toast } = useToast();
 
-  const handleSave = () => {
-    toast({
-      title: "Pengaturan Berhasil Disimpan",
-      description: "Semua pengaturan produk telah berhasil disimpan",
-    });
+  // Fetch products on component mount
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/products', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authData') ? JSON.parse(localStorage.getItem('authData')!).token : ''}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setProducts(data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  // Fetch product settings when product is selected
+  useEffect(() => {
+    if (selectedProduct) {
+      const fetchProductSettings = async () => {
+        try {
+          const response = await fetch(`http://localhost:5000/api/products/${selectedProduct}/settings`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('authData') ? JSON.parse(localStorage.getItem('authData')!).token : ''}`
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            const settingsData = data.data;
+            
+            setSettings({
+              maxAge: settingsData.max_age || '',
+              maxLimit: settingsData.max_limit || '',
+              maxTerm: settingsData.max_term_months || '',
+              interestRate: settingsData.interest_rate || '',
+              mandatorySaving: settingsData.mandatory_saving || '',
+              adminOffice: settingsData.admin_office_percentage || '',
+              adminCenter: settingsData.admin_center_percentage || '',
+              principalSaving: settingsData.principal_saving_percentage || '',
+              marketingFee: settingsData.marketing_fee_percentage || ''
+            });
+            
+            if (settingsData.crk_insurance) {
+              setCrkInsurance(JSON.parse(settingsData.crk_insurance));
+            }
+            
+            if (settingsData.flagging_fees) {
+              setFlagging(JSON.parse(settingsData.flagging_fees));
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching product settings:', error);
+        }
+      };
+
+      fetchProductSettings();
+    }
+  }, [selectedProduct]);
+
+  const handleSave = async () => {
+    if (!selectedProduct) {
+      toast({
+        title: "Pilih Produk",
+        description: "Silakan pilih produk terlebih dahulu",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/products/${selectedProduct}/settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authData') ? JSON.parse(localStorage.getItem('authData')!).token : ''}`
+        },
+        body: JSON.stringify({
+          max_age: settings.maxAge,
+          max_limit: settings.maxLimit,
+          max_term_months: settings.maxTerm,
+          interest_rate: settings.interestRate,
+          mandatory_saving: settings.mandatorySaving,
+          admin_office_percentage: settings.adminOffice,
+          admin_center_percentage: settings.adminCenter,
+          principal_saving_percentage: settings.principalSaving,
+          marketing_fee_percentage: settings.marketingFee,
+          crk_insurance: crkInsurance,
+          flagging_fees: flagging
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Pengaturan Berhasil Disimpan",
+          description: "Semua pengaturan produk telah berhasil disimpan",
+        });
+      } else {
+        toast({
+          title: "Gagal Menyimpan Pengaturan",
+          description: data.message || "Terjadi kesalahan saat menyimpan pengaturan",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Terjadi kesalahan saat menghubungi server",
+        variant: "destructive",
+      });
+    }
   };
 
   const addCrkInsurance = () => {
@@ -86,9 +210,11 @@ export function ProductsSettings() {
                   <SelectValue placeholder="Pilih produk untuk dikonfigurasi" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pinjaman-usaha">Pinjaman Usaha Mikro</SelectItem>
-                  <SelectItem value="pinjaman-konsumsi">Pinjaman Konsumsi</SelectItem>
-                  <SelectItem value="simpanan-harian">Simpanan Harian</SelectItem>
+                  {products.map((product) => (
+                    <SelectItem key={product.id} value={product.id.toString()}>
+                      {product.name} ({product.code})
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </CardContent>

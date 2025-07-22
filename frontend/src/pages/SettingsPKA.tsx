@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,8 +8,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { CreditCard, Save, Plus, Trash2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export function SettingsPKA() {
+  const { requireAuth, loading: authLoading, user } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading) {
+      requireAuth('admin');
+    }
+  }, [authLoading, requireAuth, user]);
+
   const [selectedProduct, setSelectedProduct] = useState('');
   const [pkaSettings, setPkaSettings] = useState({
     minPaymentPeriod: '',

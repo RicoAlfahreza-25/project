@@ -13,6 +13,8 @@ import { SettingsTopUp } from "./pages/SettingsTopUp";
 import { SettingsPKA } from "./pages/SettingsPKA";
 import { ManagementPaymentOffices } from "./pages/ManagementPaymentOffices";
 import { BranchDashboard } from "./pages/BranchDashboard";
+import { BranchMembers } from "./pages/BranchMembers";
+import BranchLoans from "./pages/BranchLoans";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +29,8 @@ const App = () => (
           <Route path="/" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/branch-dashboard" element={<BranchDashboard />} />
+          <Route path="/branch/members" element={<BranchMembers />} />
+          <Route path="/branch/loans" element={<BranchLoans />} />
           <Route path="/products/add" element={<ProductsAdd />} />
           <Route path="/products/settings" element={<ProductsSettings />} />
           <Route path="/settings/pka" element={<SettingsPKA />} />

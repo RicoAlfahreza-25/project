@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Users, Save, Building2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const users = [
   { id: 1, name: 'John Doe', email: 'john@koperasi.com', role: 'Admin' },
@@ -30,10 +31,17 @@ const accessRights = [
 ];
 
 export function UserAccessRights() {
+  const { requireAuth, loading: authLoading, user } = useAuth();
   const [selectedUser, setSelectedUser] = useState('');
   const [selectedBranch, setSelectedBranch] = useState('');
   const [selectedRights, setSelectedRights] = useState<string[]>([]);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!authLoading) {
+      requireAuth('admin');
+    }
+  }, [authLoading, requireAuth, user]);
 
   const handleSaveRights = () => {
     if (!selectedUser) {

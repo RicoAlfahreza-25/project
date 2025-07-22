@@ -1,23 +1,28 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Package, 
-  Settings, 
-  Users, 
-  Building2, 
-  CreditCard, 
-  TrendingUp, 
+import {
+  LayoutDashboard,
+  Package,
+  Settings,
+  Users,
+  Building2,
+  CreditCard,
+  TrendingUp,
   Shield,
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  FileText,
+  ArrowUpCircle,
+  CheckCircle2,
+  HeartPulse,
+  Wallet
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 
-const menuItems = [
+const adminMenu = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
   { icon: Package, label: 'Add Products', path: '/products/add' },
   { icon: Settings, label: 'Settings Products', path: '/products/settings' },
@@ -29,9 +34,21 @@ const menuItems = [
   { icon: Users, label: 'Management Users', path: '/management/users' },
 ];
 
+const branchMenu = [
+  { icon: LayoutDashboard, label: 'Dashboard Cabang', path: '/branch-dashboard' },
+  { icon: Users, label: 'Anggota', path: '/branch/members' },
+  { icon: FileText, label: 'Data Pinjaman', path: '/branch/loans' },
+  { icon: ArrowUpCircle, label: 'Top Up Pinjaman', path: '/branch/topup' },
+  { icon: CheckCircle2, label: 'Pelunasan PKA', path: '/branch/pka-repayment' },
+  { icon: HeartPulse, label: 'Nasabah Meninggal', path: '/branch/deceased' },
+  { icon: Wallet, label: 'Data Simpanan', path: '/branch/savings' },
+];
+
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+
+  const menuItems = user?.role === 'branch' ? branchMenu : adminMenu;
 
   return (
     <div className={cn(
