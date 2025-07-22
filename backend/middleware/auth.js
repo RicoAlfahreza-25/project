@@ -95,3 +95,11 @@ export const checkBranchAccess = (req, res, next) => {
     message: 'Access denied - insufficient permissions for this branch'
   });
 };
+
+// Middleware: allow any authenticated user
+export const requireAnyUser = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
+  next();
+};

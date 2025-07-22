@@ -317,3 +317,36 @@ export const updateProductSettings = async (req, res) => {
     });
   }
 }; 
+
+// Get all active loan products (for branch)
+export const getActiveLoanProducts = async (req, res) => {
+  try {
+    console.log('DEBUG /api/products/loans:', {
+      user: req.user,
+      headers: req.headers
+    });
+    const products = await executeQuery(
+      "SELECT * FROM products WHERE category = 'pinjaman' AND status = 'active'"
+    );
+    res.json({ success: true, data: products });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch products' });
+  }
+}; 
+
+// Get product settings for loans (branch & admin)
+export const getLoanProductSettings = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const settings = await executeQuery(
+      'SELECT * FROM product_settings WHERE product_id = ?',
+      [productId]
+    );
+    if (settings.length === 0) {
+      return res.status(404).json({ success: false, message: 'Product settings not found' });
+    }
+    res.json({ success: true, data: settings[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch product settings' });
+  }
+}; 
